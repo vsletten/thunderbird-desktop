@@ -233,7 +233,7 @@ tasks:
 
                   command:
                       - /builds/worker/bin/comm-task-env
-                      - /builds/worker/bin/run-task-hg
+                      - /builds/worker/bin/run-task
                       - '--gecko-checkout=/builds/worker/checkouts/gecko'
                       - '--gecko-sparse-profile=build/sparse-profiles/taskgraph'
                       - '--comm-checkout=/builds/worker/checkouts/gecko/comm'
