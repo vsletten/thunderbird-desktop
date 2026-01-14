@@ -999,7 +999,7 @@
 ---
 
 ### Task 5.6: Performance Optimization
-**Status:** in_progress
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Optimize for large mailboxes and responsive UI
 
@@ -1029,7 +1029,12 @@
 
 **Success Criteria:** System handles 100k+ emails efficiently
 
-**Completion Notes:**
+**Completion Notes:** Implemented performance optimizations across the stack:
+- Database: Verified indexes are appropriate; added save_batch() to EmailRepository
+- Mailbox: Batch processing with DEFAULT_BATCH_SIZE=100, reduces DB round-trips ~99%
+- Dashboard: React Query staleTime=5min, gcTime=30min, refetchOnWindowFocus=false
+- Documentation: Added Performance Characteristics section to AI_INTEGRATION_STATUS.md
+- All 117 mailbox tests pass, dashboard builds successfully
 
 ---
 
