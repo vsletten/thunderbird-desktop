@@ -509,7 +509,7 @@
 ---
 
 ### Task 4.2: Implement API Client Layer
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Create TypeScript API client for backend communication
 
@@ -539,7 +539,13 @@
 
 **Success Criteria:** Type-safe API client with React Query hooks
 
-**Completion Notes:**
+**Completion Notes:** Completed the API client layer (building on Task 4.1 foundation):
+- Added relationships.ts with getRelationships, getRelationship, getEntityRelationships
+- Created useEntities hook with useEntities, useEntitiesInfinite, useEntity, useEntitySearch
+- Created useEmails hook with useEmails, useEmailsInfinite, useEmail, useEmailContent, useEmailThread
+- Created useRelationships hook with useRelationships, useRelationshipsInfinite, useRelationship, useEntityRelationships
+- All hooks support pagination via React Query's useInfiniteQuery
+- TypeScript compiles cleanly, build verified working
 
 ---
 
