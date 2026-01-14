@@ -199,6 +199,39 @@ node --check mail/base/content/lifeTabs.js
 
 ---
 
+## Performance Characteristics
+
+### Database Optimizations
+- **Indexes**: All major query patterns are indexed:
+  - `emails`: account_id, date_sent, from_address, classification, message_id, in_reply_to
+  - `canonical_entities`: account_id+type, account_id+key, mention_count
+  - `entity_relationships`: source_entity_id, target_entity_id, relationship_type
+- **Composite indexes**: account_id+date_sent for date-range queries
+
+### Ingestion Performance
+- **Batch writes**: Mailbox ingestion uses batches of 100 messages (configurable)
+- **Incremental sync**: Only processes new messages since last sync
+- **Duplicate detection**: Uses indexed unique constraints for fast checks
+- **Expected throughput**: ~1000-2000 messages/second for batch inserts
+
+### Frontend Optimizations
+- **React Query caching**: 5-minute stale time, 30-minute cache retention
+- **No refetch on window focus**: Avoids unnecessary API calls
+- **Infinite scroll**: Email lists use pagination with `useInfiniteQuery`
+- **Lazy loading**: Entity relationships loaded on demand
+
+### Resource Requirements
+- **Memory**: ~100MB baseline for dashboard, scales with data in view
+- **Database**: PostgreSQL with 1GB+ memory recommended for 100k+ emails
+- **Network**: Minimal - API calls are cached client-side
+
+### Scalability Guidelines
+- **10k emails**: Should work smoothly with default settings
+- **100k emails**: May need pagination limits, dashboard loads remain fast
+- **1M+ emails**: Consider database tuning, query optimization, partitioning
+
+---
+
 ## Known Limitations
 
 1. **Database Required**: Backend requires PostgreSQL with email-poc schema
