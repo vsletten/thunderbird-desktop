@@ -47,6 +47,37 @@ var { MailUtils } = ChromeUtils.importESModule(
 const LIFE_DASHBOARD_API_URL = "http://localhost:8000";
 
 /**
+ * Configuration for backend auto-start feature.
+ *
+ * When enabled, Thunderbird will attempt to start the backend server
+ * automatically if it's not running when opening the Life tab.
+ *
+ * Set LIFE_DASHBOARD_BACKEND_PATH to the path containing the start-server.sh
+ * script (the packages/api/scripts directory in email-poc).
+ *
+ * @type {object}
+ */
+const LIFE_DASHBOARD_AUTO_START = {
+  /** Whether to attempt auto-starting the backend */
+  enabled: true,
+
+  /**
+   * Path to the email-poc API scripts directory containing start-server.sh.
+   * Set this to your local path, e.g.:
+   *   "/home/user/projects/email-poc/v1/packages/api/scripts"
+   * If null, auto-start is disabled.
+   * @type {string|null}
+   */
+  backendPath: null,
+
+  /** Maximum retries after attempting to start backend */
+  maxRetries: 3,
+
+  /** Delay between retries in milliseconds */
+  retryDelay: 2000,
+};
+
+/**
  * Fallback page shown when the backend is not available.
  * This data URL provides a user-friendly error message with instructions.
  * @type {string}
@@ -189,6 +220,14 @@ const LIFE_DASHBOARD_ERROR_PAGE = `data:text/html,
         <li>Ensure PostgreSQL database is running and accessible</li>
         <li>Check terminal for error messages</li>
         <li>Review logs in the API package directory</li>
+      </ul>
+    </div>
+    <div class="troubleshoot">
+      <h3>Auto-Start (Optional):</h3>
+      <ul>
+        <li>Set <code>LIFE_DASHBOARD_AUTO_START.backendPath</code> in lifeTabs.js</li>
+        <li>Point it to: <code>email-poc/v1/packages/api/scripts</code></li>
+        <li>The backend will start automatically when opening this tab</li>
       </ul>
     </div>
     <button class="retry-btn" onclick="window.location.reload()">
@@ -416,14 +455,57 @@ var lifeTabType = {
 
       /**
        * Checks if the backend is available and loads the appropriate URL.
-       * If the backend health check fails, loads an error page instead.
+       * If the backend health check fails, attempts to auto-start the backend
+       * (if configured) or loads an error page.
        *
        * @param {object} tab - The tab info object.
        * @param {string} url - The URL to load if backend is available.
+       * @param {number} retryCount - Current retry attempt (for auto-start).
        */
-      async checkBackendAndLoad(tab, url) {
+      async checkBackendAndLoad(tab, url, retryCount = 0) {
+        const isAvailable = await this.checkBackendHealth();
+
+        if (isAvailable) {
+          // Backend is available, load the dashboard
+          MailE10SUtils.loadURI(tab.browser, url);
+          return;
+        }
+
+        // Backend not available - try auto-start if configured
+        if (
+          LIFE_DASHBOARD_AUTO_START.enabled &&
+          LIFE_DASHBOARD_AUTO_START.backendPath &&
+          retryCount === 0
+        ) {
+          // First failure and auto-start is configured - try to start backend
+          const started = await this.attemptBackendStart();
+          if (started) {
+            // Wait and retry
+            await this.delay(LIFE_DASHBOARD_AUTO_START.retryDelay);
+            return this.checkBackendAndLoad(tab, url, 1);
+          }
+        }
+
+        // Check if we should retry after auto-start attempt
+        if (
+          retryCount > 0 &&
+          retryCount < LIFE_DASHBOARD_AUTO_START.maxRetries
+        ) {
+          await this.delay(LIFE_DASHBOARD_AUTO_START.retryDelay);
+          return this.checkBackendAndLoad(tab, url, retryCount + 1);
+        }
+
+        // All retries exhausted or auto-start not configured - show error page
+        MailE10SUtils.loadURI(tab.browser, LIFE_DASHBOARD_ERROR_PAGE);
+      },
+
+      /**
+       * Checks if the backend health endpoint responds successfully.
+       *
+       * @returns {Promise<boolean>} True if backend is healthy.
+       */
+      async checkBackendHealth() {
         try {
-          // Try to reach the health endpoint with a short timeout
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 3000);
 
@@ -433,17 +515,65 @@ var lifeTabType = {
           });
           clearTimeout(timeoutId);
 
-          if (response.ok) {
-            // Backend is available, load the dashboard
-            MailE10SUtils.loadURI(tab.browser, url);
-          } else {
-            // Backend returned an error, show error page
-            MailE10SUtils.loadURI(tab.browser, LIFE_DASHBOARD_ERROR_PAGE);
-          }
+          return response.ok;
         } catch {
-          // Network error or timeout, show error page
-          MailE10SUtils.loadURI(tab.browser, LIFE_DASHBOARD_ERROR_PAGE);
+          return false;
         }
+      },
+
+      /**
+       * Attempts to start the backend server using the configured script.
+       *
+       * @returns {Promise<boolean>} True if start command was executed.
+       */
+      async attemptBackendStart() {
+        const scriptsPath = LIFE_DASHBOARD_AUTO_START.backendPath;
+        if (!scriptsPath) {
+          return false;
+        }
+
+        try {
+          // Use Thunderbird's subprocess module to run the start script
+          const { Subprocess } = ChromeUtils.importESModule(
+            "resource://gre/modules/Subprocess.sys.mjs"
+          );
+
+          const scriptPath = `${scriptsPath}/start-server.sh`;
+
+          // Check if script exists by trying to run it
+          const proc = await Subprocess.call({
+            command: "/bin/bash",
+            arguments: [scriptPath],
+            environment: {
+              // Pass through environment variables
+              PATH: Services.env.get("PATH") || "/usr/bin:/bin",
+              HOME: Services.env.get("HOME") || "",
+              DATABASE_URL: Services.env.get("DATABASE_URL") || "",
+            },
+            // Don't wait for completion - server runs in background
+            // but we need to wait a bit for it to start
+          });
+
+          // Wait a bit for the process to start
+          await this.delay(500);
+
+          // Check exit status if available
+          const status = await proc.wait();
+          return status.exitCode === 0;
+        } catch (error) {
+          console.error("Failed to start Life Dashboard backend:", error);
+          return false;
+        }
+      },
+
+      /**
+       * Helper function for async delay.
+       *
+       * @param {number} ms - Milliseconds to delay.
+       * @returns {Promise<void>}
+       */
+      delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
       },
 
       /**
