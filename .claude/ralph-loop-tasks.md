@@ -419,7 +419,7 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 ---
 
 ### Task 2.4: Implement Account Endpoints
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Create REST endpoints for account management
 
@@ -434,7 +434,20 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 
 **Success Criteria:** Account endpoints work and tests pass
 
-**Completion Notes:**
+**Completion Notes:** Implemented account REST endpoints:
+- `routes/__init__.py`: Package init exporting accounts_router
+- `routes/accounts.py`:
+  - `GET /accounts` - list accounts with pagination (limit, offset) and active_only filter
+  - `GET /accounts/{id}` - get single account by ID, returns 404 if not found
+  - Uses dependency injection for AccountRepository
+- Updated `main.py` to include accounts_router
+- `tests/conftest.py`:
+  - Mock fixtures with sample EmailAccount data
+  - TestClient fixture with dependency override
+- `tests/test_accounts.py`:
+  - TestListAccounts: pagination, filtering, validation tests
+  - TestGetAccount: success, not found, inactive account tests
+- Python syntax verified
 
 ---
 
