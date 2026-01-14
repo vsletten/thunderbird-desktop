@@ -49,6 +49,7 @@ messenger.jar:
     content/messenger/nsContextMenu.sys.mjs         (content/nsContextMenu.sys.mjs)
     content/messenger/mailCore.js                   (content/mailCore.js)
     content/messenger/mailTabs.js                   (content/mailTabs.js)
+    content/messenger/lifeTabs.js                   (content/lifeTabs.js)
     content/messenger/mailWindow.js                 (content/mailWindow.js)
     content/messenger/mailWindowOverlay.js          (content/mailWindowOverlay.js)
     content/messenger/messageWindow.js              (content/messageWindow.js)

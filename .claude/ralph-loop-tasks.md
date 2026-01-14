@@ -77,7 +77,7 @@
 ---
 
 ### Task 1.3: Register Life Tab in Build System
-**Status:** pending
+**Status:** completed
 **Repo:** thunderbird-desktop
 **Goal:** Wire lifeTabs.js into the build and module system
 
@@ -92,7 +92,10 @@
 
 **Success Criteria:** lifeTabs.js is part of the build (can verify with `./mach build` or inspecting output)
 
-**Completion Notes:**
+**Completion Notes:** Added lifeTabs.js to both required locations:
+- `mail/base/jar.mn` line 52: `content/messenger/lifeTabs.js (content/lifeTabs.js)` (after mailTabs.js)
+- `mail/base/content/messenger.xhtml` line 157: `<script defer="defer" src="chrome://messenger/content/lifeTabs.js"></script>` (after mailTabs.js)
+The lifeTabs.js file will now be included in the messenger.jar chrome package and loaded when messenger.xhtml is loaded. The tab type registration happens via the window load event listener in lifeTabs.js.
 
 ---
 
