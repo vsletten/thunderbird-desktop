@@ -452,7 +452,7 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 ---
 
 ### Task 2.5: Implement Entity Endpoints
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Create REST endpoints for entity queries
 
@@ -468,7 +468,20 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 
 **Success Criteria:** Entity endpoints work and tests pass
 
-**Completion Notes:**
+**Completion Notes:** Implemented entity REST endpoints:
+- `routes/entities.py`:
+  - `GET /entities` - list entities with required account_id, optional entity_type filter, search query, and pagination
+  - `GET /entities/{id}` - get single entity, returns 404 if not found
+  - `GET /entities/{id}/relationships` - get entity with forward and reverse relationships
+  - Uses both CanonicalEntityRepository and EntityRelationshipRepository
+- Updated `routes/__init__.py` to export entities_router
+- Updated `main.py` to include entities_router
+- `tests/test_entities.py`:
+  - Sample CanonicalEntity and EntityRelationship fixtures
+  - TestListEntities: type filtering, search, pagination tests
+  - TestGetEntity: success, not found, metadata tests
+  - TestGetEntityRelationships: forward/reverse relationship tests
+- Python syntax verified
 
 ---
 
