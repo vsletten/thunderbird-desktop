@@ -15,6 +15,18 @@
 
 /* globals MozElements */
 
+var { MailE10SUtils } = ChromeUtils.importESModule(
+  "resource:///modules/MailE10SUtils.sys.mjs"
+);
+
+/**
+ * Default URL for the Life Dashboard.
+ * This will be loaded in the browser element when the tab is opened.
+ * Initially uses a data URL for testing; will be changed to localhost API.
+ */
+const LIFE_DASHBOARD_DEFAULT_URL =
+  "data:text/html,<html><head><title>Life Dashboard</title><style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:linear-gradient(135deg,%23667eea%200%25,%23764ba2%20100%25);color:white;}</style></head><body><div style='text-align:center'><h1>Life Dashboard</h1><p>Browser element loaded successfully!</p><p>Ready for FastAPI backend connection.</p></div></body></html>";
+
 /**
  * Tab monitor for Life Dashboard.
  * Monitors tab events and updates state accordingly.
@@ -75,6 +87,18 @@ var lifeTabType = {
         );
         // Set the tab title
         tab.title = "Life Dashboard";
+
+        // Get the browser element from the panel
+        tab.browser = document.getElementById("lifeTabBrowser");
+
+        if (tab.browser) {
+          // Configure browser for content loading
+          tab.browser.setAttribute("type", "content");
+
+          // Load the dashboard URL (data URL for testing, will be localhost later)
+          const url = args.url || LIFE_DASHBOARD_DEFAULT_URL;
+          MailE10SUtils.loadURI(tab.browser, url);
+        }
       },
 
       /**
@@ -141,6 +165,16 @@ var lifeTabType = {
           ? tabmail.tabInfo.indexOf(tabmail.tabModes.life.tabs[0])
           : -1;
         return tabIndex;
+      },
+
+      /**
+       * Returns the browser element for this tab.
+       *
+       * @param {object} tab - The tab info object.
+       * @returns {Element} The browser element.
+       */
+      getBrowser(tab) {
+        return tab.browser || document.getElementById("lifeTabBrowser");
       },
 
       // Command handling stubs (can be expanded later)

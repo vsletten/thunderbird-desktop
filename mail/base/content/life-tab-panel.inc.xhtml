@@ -10,16 +10,13 @@
           <vbox id="life-deactivated-notification-location">
             <!-- Notification box location for Life tab messages -->
           </vbox>
-          <vbox id="lifeTabContent" flex="1" align="center" pack="center">
-            <!-- Placeholder content - will be replaced with browser element -->
-            <html:div xmlns="http://www.w3.org/1999/xhtml"
-                      style="text-align: center; padding: 20px;">
-              <html:h2 style="margin-bottom: 10px; color: var(--lwt-text-color, inherit);">
-                Life Dashboard
-              </html:h2>
-              <html:p style="color: var(--lwt-text-color, inherit);">
-                Loading...
-              </html:p>
-            </html:div>
+          <vbox id="lifeTabBrowserContainer" flex="1">
+            <!-- Browser element for loading the Life Dashboard web content -->
+            <browser id="lifeTabBrowser"
+                     type="content"
+                     flex="1"
+                     disablehistory="true"
+                     maychangeremoteness="true"
+                     autocompletepopup="PopupAutoComplete"/>
           </vbox>
         </vbox>
