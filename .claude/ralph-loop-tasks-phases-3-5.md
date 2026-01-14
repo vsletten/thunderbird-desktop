@@ -461,7 +461,7 @@
 ## Phase 4: Dashboard UI (React)
 
 ### Task 4.1: Scaffold React Dashboard Application
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Create React app structure for the Life Dashboard UI
 
@@ -495,7 +495,16 @@
 
 **Success Criteria:** React app scaffolded, builds successfully
 
-**Completion Notes:**
+**Completion Notes:** Created complete React dashboard scaffold:
+- Vite + React + TypeScript with TailwindCSS (via @tailwindcss/vite)
+- React Query (@tanstack/react-query) and React Router installed
+- TypeScript API types matching all backend Pydantic models
+- API client layer with fetch wrapper and error handling
+- React Query hooks for accounts and dashboard data
+- Three placeholder pages: Today (with dashboard data display), Entities (with search UI), Settings (with account list)
+- App.tsx with sidebar navigation, account selector, and routing
+- Custom CSS variables for dark/light mode theming
+- Build verified: produces 274KB JS bundle + 14KB CSS
 
 ---
 
