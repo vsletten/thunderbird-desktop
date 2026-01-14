@@ -277,7 +277,7 @@
 ---
 
 ### Task 3.4: Implement Mbox Reader Core
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Read and parse mbox files to extract email messages
 
@@ -305,7 +305,16 @@
 
 **Success Criteria:** Can read mbox files and extract structured email data
 
-**Completion Notes:**
+**Completion Notes:** Implemented full MboxReader class (~590 lines):
+- list_folders(): Scans mail directories, handles .sbd subdirectories for nested folders
+- read_messages(): Uses Python mailbox module, filters deleted messages via X-Mozilla-Status
+- get_message(): Finds message by Message-ID
+- get_message_at_offset(): Direct file access at byte offset for incremental sync
+- _parse_mailbox_message(): Extracts all headers, body, mozilla status flags
+- _extract_body(): Handles multipart messages (text/plain, text/html)
+- _decode_payload(): Encoding handling with fallbacks (UTF-8, Latin-1, CP1252)
+- 17 new tests covering folder listing, message reading, multipart, encoding, errors
+- All 52 mailbox package tests pass
 
 ---
 
