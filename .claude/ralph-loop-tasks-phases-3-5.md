@@ -689,7 +689,7 @@
 ---
 
 ### Task 4.6: Add Navigation and Layout
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Implement app-wide navigation and consistent layout
 
@@ -722,7 +722,15 @@
 
 **Success Criteria:** Cohesive navigation, consistent layout across pages
 
-**Completion Notes:**
+**Completion Notes:** Created comprehensive layout system:
+- AppLayout: Provides context for account selection, global search ref, keyboard shortcuts
+- Sidebar: Collapsible with icons, active state indicators, account selector, keyboard hints
+- Header: Optional search bar with actions slot
+- PageContainer/PageContent: Layout wrappers for consistent page structure
+- Keyboard shortcuts: g+t (Today), g+e (Entities), g+m (Emails), / (focus search), Escape (blur)
+- localStorage persistence for account selection and sidebar collapsed state
+- Added /emails route with Emails page
+- Build verified: 315KB JS + 25KB CSS
 
 ---
 
