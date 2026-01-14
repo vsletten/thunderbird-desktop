@@ -20,12 +20,146 @@ var { MailE10SUtils } = ChromeUtils.importESModule(
 );
 
 /**
- * Default URL for the Life Dashboard.
- * This will be loaded in the browser element when the tab is opened.
- * Initially uses a data URL for testing; will be changed to localhost API.
+ * Configuration for the Life Dashboard backend connection.
+ *
+ * The Life Dashboard loads a React frontend served by a FastAPI backend.
+ * By default, it connects to localhost:8000 where the backend should be running.
+ *
+ * To change the URL, you can:
+ * 1. Pass a custom URL when opening the tab: tabmail.openTab("life", { url: "http://..." })
+ * 2. Modify LIFE_DASHBOARD_API_URL below for a different default
+ *
+ * The backend should serve:
+ * - GET / - The main dashboard HTML/React application
+ * - GET /health - Health check endpoint (returns {"status": "ok"})
+ * - Various API endpoints for entities, relationships, emails, etc.
  */
-const LIFE_DASHBOARD_DEFAULT_URL =
-  "data:text/html,<html><head><title>Life Dashboard</title><style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:linear-gradient(135deg,%23667eea%200%25,%23764ba2%20100%25);color:white;}</style></head><body><div style='text-align:center'><h1>Life Dashboard</h1><p>Browser element loaded successfully!</p><p>Ready for FastAPI backend connection.</p></div></body></html>";
+
+/**
+ * Default API URL for the Life Dashboard backend.
+ * This should point to the FastAPI server serving the dashboard frontend.
+ * @type {string}
+ */
+const LIFE_DASHBOARD_API_URL = "http://localhost:8000";
+
+/**
+ * Fallback page shown when the backend is not available.
+ * This data URL provides a user-friendly error message with instructions.
+ * @type {string}
+ */
+const LIFE_DASHBOARD_ERROR_PAGE = `data:text/html,
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Life Dashboard - Backend Unavailable</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, %23f5f7fa 0%25, %23c3cfe2 100%25);
+      color: %23333;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 500px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h1 {
+      color: %23667eea;
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+    .status {
+      background: %23fff3cd;
+      border: 1px solid %23ffc107;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    .status-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    p {
+      color: %23666;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .instructions {
+      text-align: left;
+      background: %23f8f9fa;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+    .instructions h3 {
+      color: %23333;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    .instructions ol {
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 8px;
+      color: %23555;
+    }
+    code {
+      background: %23e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 13px;
+    }
+    .retry-btn {
+      background: %23667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    .retry-btn:hover {
+      background: %23556cd6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Life Dashboard</h1>
+    <div class="status">
+      <div class="status-icon">%E2%9A%A0%EF%B8%8F</div>
+      <strong>Backend Server Not Available</strong>
+    </div>
+    <p>The Life Dashboard backend is not running or cannot be reached.</p>
+    <div class="instructions">
+      <h3>To start the backend:</h3>
+      <ol>
+        <li>Navigate to the email-poc directory</li>
+        <li>Run: <code>cd packages/api</code></li>
+        <li>Start the server: <code>uvicorn api.main:app --reload</code></li>
+        <li>Wait for "Application startup complete"</li>
+        <li>Click Retry below or press Ctrl+Shift+L</li>
+      </ol>
+    </div>
+    <button class="retry-btn" onclick="location.href='${LIFE_DASHBOARD_API_URL}'">
+      Retry Connection
+    </button>
+  </div>
+</body>
+</html>`.replace(/\n/g, "").replace(/\s{2,}/g, " ");
 
 /**
  * Tab monitor for Life Dashboard.
@@ -95,9 +229,43 @@ var lifeTabType = {
           // Configure browser for content loading
           tab.browser.setAttribute("type", "content");
 
-          // Load the dashboard URL (data URL for testing, will be localhost later)
-          const url = args.url || LIFE_DASHBOARD_DEFAULT_URL;
-          MailE10SUtils.loadURI(tab.browser, url);
+          // Determine the URL to load
+          const url = args.url || LIFE_DASHBOARD_API_URL;
+
+          // Check if backend is available before loading
+          this.checkBackendAndLoad(tab, url);
+        }
+      },
+
+      /**
+       * Checks if the backend is available and loads the appropriate URL.
+       * If the backend health check fails, loads an error page instead.
+       *
+       * @param {object} tab - The tab info object.
+       * @param {string} url - The URL to load if backend is available.
+       */
+      async checkBackendAndLoad(tab, url) {
+        try {
+          // Try to reach the health endpoint with a short timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+          const response = await fetch(`${LIFE_DASHBOARD_API_URL}/health`, {
+            method: "GET",
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            // Backend is available, load the dashboard
+            MailE10SUtils.loadURI(tab.browser, url);
+          } else {
+            // Backend returned an error, show error page
+            MailE10SUtils.loadURI(tab.browser, LIFE_DASHBOARD_ERROR_PAGE);
+          }
+        } catch {
+          // Network error or timeout, show error page
+          MailE10SUtils.loadURI(tab.browser, LIFE_DASHBOARD_ERROR_PAGE);
         }
       },
 

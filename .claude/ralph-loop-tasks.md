@@ -272,7 +272,7 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 ---
 
 ### Task 1.10: Configure Browser for Localhost API
-**Status:** pending
+**Status:** completed
 **Repo:** thunderbird-desktop
 **Goal:** Configure the embedded browser to load from localhost FastAPI server
 
@@ -287,7 +287,20 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 
 **Success Criteria:** Browser attempts to load from localhost:8000, shows appropriate message if unavailable
 
-**Completion Notes:**
+**Completion Notes:** Configured browser for localhost FastAPI server:
+- Added `LIFE_DASHBOARD_API_URL = "http://localhost:8000"` constant
+- Added comprehensive configuration documentation explaining how to change the URL
+- Created styled `LIFE_DASHBOARD_ERROR_PAGE` data URL with:
+  - User-friendly error message when backend unavailable
+  - Step-by-step instructions to start the backend (uvicorn command)
+  - "Retry Connection" button that redirects to the API URL
+  - Modern CSS styling with responsive design
+- Implemented `checkBackendAndLoad` async method that:
+  - Performs health check to `/health` endpoint with 3-second timeout
+  - Loads dashboard on success, error page on failure
+  - Uses AbortController for timeout handling
+- openTab now calls checkBackendAndLoad instead of loading URL directly
+- Syntax verified with Node.js --check
 
 ---
 
