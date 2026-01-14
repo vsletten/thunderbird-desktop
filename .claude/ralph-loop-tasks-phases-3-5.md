@@ -200,7 +200,7 @@
 ---
 
 ### Task 3.2: Create Mailbox Package Structure
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Scaffold packages/mailbox with core interfaces
 
@@ -226,7 +226,14 @@
 
 **Success Criteria:** Package structure created, interfaces defined, imports work
 
-**Completion Notes:**
+**Completion Notes:** Created packages/mailbox with:
+- pyproject.toml (dependencies: email-poc-core, pydantic, python-dateutil)
+- src/mailbox_reader/ with 5 modules (__init__, models, reader, profile, mbox)
+- Data models: ThunderbirdAccount, MailFolder, ParsedMessage, SyncState, AccountType
+- Abstract MailboxReader with 5 methods + exception classes
+- MboxReader and ThunderbirdProfile stubs for Tasks 3.3-3.4
+- 14 unit tests for models (all pass)
+- Package installed with uv, all imports verified working
 
 ---
 
