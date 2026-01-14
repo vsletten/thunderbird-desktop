@@ -238,7 +238,7 @@
 ---
 
 ### Task 3.3: Implement Thunderbird Profile Discovery
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Auto-detect Thunderbird profile location and account structure
 
@@ -267,7 +267,12 @@
 
 **Success Criteria:** Can auto-detect Thunderbird profile and list accounts
 
-**Completion Notes:**
+**Completion Notes:** Implemented complete ThunderbirdProfile class:
+- Cross-platform profile discovery (Linux ~/.thunderbird, macOS ~/Library/Thunderbird, Windows %APPDATA%\Thunderbird)
+- profiles.ini parsing with support for default/first profile, relative/absolute paths
+- prefs.js parsing with regex for user_pref() (strings, booleans, numbers)
+- Account extraction for IMAP, POP3, and local folders with identity email lookup
+- 21 new tests covering all functionality (35 total mailbox tests pass)
 
 ---
 
