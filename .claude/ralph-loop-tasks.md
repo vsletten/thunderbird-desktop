@@ -185,7 +185,7 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 ---
 
 ### Task 1.7: Add UI to Open Life Tab
-**Status:** pending
+**Status:** completed
 **Repo:** thunderbird-desktop
 **Goal:** Add button or menu item to open the Life Dashboard tab
 
@@ -200,7 +200,18 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 
 **Success Criteria:** User can click menu/button to open Life Dashboard tab
 
-**Completion Notes:**
+**Completion Notes:** Added UI elements to open Life Dashboard:
+- Added Life button to Spaces Toolbar (`spacesToolbar.inc.xhtml`):
+  - New `<button id="lifeButton">` after Chat button
+  - Title "Life Dashboard", same styling as other space buttons
+- Added space definition in `spacesToolbar.js`:
+  - name: "life", button: lifeButton, tabInSpace checks for "life" mode
+  - open method calls `openTab("life", {}, where)`
+- Added Go menu item (`messenger-menubar.inc.xhtml`):
+  - `<menuitem id="menu_goLife" label="Life Dashboard" accesskey="L">`
+  - oncommand opens life tab via tabmail.openTab
+- Removed temporary auto-open code from lifeTabs.js (added in Task 1.5)
+- Syntax verified for both JS files
 
 ---
 
