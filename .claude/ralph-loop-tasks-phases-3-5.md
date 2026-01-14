@@ -641,7 +641,7 @@
 ---
 
 ### Task 4.5: Build Email Browser View
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Implement email browsing within the dashboard
 
@@ -676,7 +676,15 @@
 
 **Success Criteria:** Can browse emails, view details, and see threads
 
-**Completion Notes:**
+**Completion Notes:** Created full email browser UI:
+- EmailRow: Email list item with unread indicator, classification badge, labels, relative timestamps
+- EmailListView: Paginated list with infinite scroll load more button
+- EmailFilters: Search, classification dropdown, sort by/order toggle, date range inputs
+- EmailViewer: Full email display with HTML/plain toggle, headers, labels, thread navigation link
+- EmailViewerEmpty: Placeholder when no email selected
+- ThreadView: Conversation thread with expand/collapse per message, expand all/collapse all buttons
+- Emails.tsx: Split-view layout (40/60), filter bar with pagination info, mobile slide-in modal
+- Build verified: 293KB JS + 24KB CSS
 
 ---
 
