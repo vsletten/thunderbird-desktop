@@ -405,7 +405,7 @@
 ---
 
 ### Task 3.7: Add File Watching for Real-time Updates
-**Status:** pending
+**Status:** completed
 **Repo:** email-poc
 **Goal:** Monitor mbox files for changes and trigger incremental ingestion
 
@@ -432,7 +432,29 @@
 
 **Success Criteria:** Background service watches mbox files and triggers incremental sync
 
-**Completion Notes:**
+**Completion Notes:** Implemented MailboxWatcher with watchdog for real-time mbox monitoring:
+- Added watchdog>=3.0 to main dependencies
+- Created watcher.py with MailboxWatcher class (~450 lines):
+  - Debounced file events (configurable, default 2s)
+  - Max wait timeout to prevent starvation (default 10s)
+  - Background debounce thread for event processing
+  - Callbacks for sync_start, sync_complete, sync_error
+  - Automatic folder map rebuild for new folders
+  - WatcherStats for event/sync tracking
+- Added 'watch' CLI command with:
+  - --dry-run mode for testing without database
+  - --debounce to configure debounce delay
+  - --verbose for debug logging
+  - Graceful Ctrl+C shutdown with session summary
+- Created 29 new tests covering:
+  - WatcherStats initialization
+  - DebouncedEvent creation and tracking
+  - MailboxEventHandler filtering (.msf, hidden, .dat files)
+  - MailboxWatcher start/stop lifecycle
+  - Event debouncing behavior
+  - Callback invocation
+  - Integration test for file modification detection
+- All 117 mailbox package tests pass
 
 ---
 
