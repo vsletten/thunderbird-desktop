@@ -125,7 +125,7 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 ---
 
 ### Task 1.5: Implement Tab Registration and Opening
-**Status:** pending
+**Status:** completed
 **Repo:** thunderbird-desktop
 **Goal:** Register the tab type and implement openTab to display content
 
@@ -142,7 +142,13 @@ The lifeTabs.js file will now be included in the messenger.jar chrome package an
 
 **Success Criteria:** Running Thunderbird shows Life tab that can be opened and displays placeholder
 
-**Completion Notes:**
+**Completion Notes:** Tab registration and opening implemented:
+- The `openTab` method was already implemented in Task 1.2 (sets icon and title)
+- Tab registration via `registerTabType` was already in place via window load event
+- Added temporary startup code in lifeTabs.js that opens the Life tab after 1 second delay
+- Startup code includes console.log for debugging and TODO comment for removal in Task 1.7
+- Syntax verified with Node.js --check
+- Manual testing required: Run Thunderbird, expect Life Dashboard tab to auto-open
 
 ---
 

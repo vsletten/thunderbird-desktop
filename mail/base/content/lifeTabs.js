@@ -189,5 +189,13 @@ window.addEventListener("load", () => {
   if (tabmail) {
     tabmail.registerTabType(lifeTabType);
     tabmail.registerTabMonitor(lifeTabMonitor);
+
+    // TEMPORARY: Open Life tab on startup for testing
+    // TODO: Remove this once Task 1.7 adds proper UI to open the tab
+    // Delay slightly to ensure mail tabs are initialized first
+    setTimeout(() => {
+      tabmail.openTab("life", {});
+      console.log("Life Dashboard tab opened for testing");
+    }, 1000);
   }
 });
