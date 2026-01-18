@@ -278,6 +278,17 @@ var gSpacesToolbar = {
         },
       },
       {
+        name: "life",
+        button: document.getElementById("lifeButton"),
+        menuitem: document.getElementById("spacesPopupButtonLife"),
+        tabInSpace(tabInfo) {
+          return tabInfo.mode.name == "life" ? 1 : 0;
+        },
+        open(where) {
+          return openTab("life", {}, where);
+        },
+      },
+      {
         name: "settings",
         button: document.getElementById("settingsButton"),
         menuitem: document.getElementById("spacesPopupButtonSettings"),

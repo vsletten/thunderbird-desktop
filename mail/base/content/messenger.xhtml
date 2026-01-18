@@ -154,6 +154,7 @@
   <script defer="defer" src="chrome://messenger/content/mailCommands.js"></script>
   <script defer="defer" src="chrome://messenger/content/mailWindowOverlay.js"></script>
   <script defer="defer" src="chrome://messenger/content/mailTabs.js"></script>
+  <script defer="defer" src="chrome://messenger/content/lifeTabs.js"></script>
   <script defer="defer" src="chrome://messenger-newsblog/content/newsblogOverlay.js"></script>
   <script defer="defer" src="chrome://messenger/content/mail-offline.js"></script>
   <script defer="defer" src="chrome://messenger/content/msgViewPickerOverlay.js"></script>
@@ -360,6 +361,7 @@
 </keyset>
 
 #include ../../../calendar/base/content/calendar-keys.inc.xhtml
+#include life-keys.inc.xhtml
 
 <popupset id="mainPopupSet">
 #include widgets/browserPopups.inc.xhtml
@@ -568,6 +570,7 @@
 #include ../../components/im/content/chat-messenger.inc.xhtml
 #include ../../../calendar/base/content/calendar-tab-panels.inc.xhtml
 #include ../../../calendar/base/content/item-editing/calendar-item-panel.inc.xhtml
+#include life-tab-panel.inc.xhtml
       </tabpanels>
      </tabbox>
       <html:template id="mail3PaneTabTemplate">
