@@ -3037,28 +3037,50 @@ NS_IMETHODIMP nsMsgDBFolder::GetPrettyPath(nsACString& aPath) {
 }
 
 nsString nsMsgDBFolder::GetLocalizedNameInternal() {
-  if (mFlags & nsMsgFolderFlags::Inbox) {
+  // INBOX is special...
+  if (mFlags & nsMsgFolderFlags::Inbox &&
+      mName.LowerCaseEqualsLiteral("inbox")) {
     return kLocalizedInboxName;
   }
-  if (mFlags & nsMsgFolderFlags::SentMail) {
+
+  nsAutoCString serverType;
+  GetIncomingServerType(serverType);
+  if (!serverType.Equals("none")) {
+    // Only Local Folders acccounts should have special treatment of name.
+    // For other accounts, the name may or may not be localized to the
+    // user server side settings. But we must match what's shown to the
+    // user on the server to avoid confusion about what folder it is and
+    // potential duplication (e.g. name + localized name both showing "Sent").
+    // See nsMsgDBFolder::AddSubfolder
+    return u""_ns;
+  }
+
+  if (mFlags & nsMsgFolderFlags::SentMail &&
+      mName.LowerCaseEqualsLiteral("sent")) {
     return kLocalizedSentName;
   }
-  if (mFlags & nsMsgFolderFlags::Drafts) {
+  if (mFlags & nsMsgFolderFlags::Drafts &&
+      mName.LowerCaseEqualsLiteral("drafts")) {
     return kLocalizedDraftsName;
   }
-  if (mFlags & nsMsgFolderFlags::Templates) {
+  if (mFlags & nsMsgFolderFlags::Templates &&
+      mName.LowerCaseEqualsLiteral("templates")) {
     return kLocalizedTemplatesName;
   }
-  if (mFlags & nsMsgFolderFlags::Trash) {
+  if (mFlags & nsMsgFolderFlags::Trash &&
+      mName.LowerCaseEqualsLiteral("trash")) {
     return kLocalizedTrashName;
   }
-  if (mFlags & nsMsgFolderFlags::Queue) {
+  if (mFlags & nsMsgFolderFlags::Queue &&
+      mName.LowerCaseEqualsLiteral("unsent messages")) {
     return kLocalizedUnsentName;
   }
-  if (mFlags & nsMsgFolderFlags::Junk) {
+  if (mFlags & nsMsgFolderFlags::Junk && mName.LowerCaseEqualsLiteral("junk")) {
     return kLocalizedJunkName;
   }
-  if (mFlags & nsMsgFolderFlags::Archive) {
+  if (mFlags & nsMsgFolderFlags::Archive &&
+
+      mName.LowerCaseEqualsLiteral("archives")) {
     return kLocalizedArchivesName;
   }
   return u""_ns;

@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "aa-stroke"
 version = "0.1.0"
-source = "git+https://github.com/FirefoxGraphics/aa-stroke?rev=a821fa621c2def48e90c82774b4c6563b5a8ea4a#a821fa621c2def48e90c82774b4c6563b5a8ea4a"
+source = "git+https://github.com/FirefoxGraphics/aa-stroke?rev=5776bdfc8ad664a1503db668fab397d818a5f98a#5776bdfc8ad664a1503db668fab397d818a5f98a"
 dependencies = [
  "euclid",
 ]
@@ -2380,6 +2380,7 @@ dependencies = [
  "geckoservo",
  "gkrust-shared",
  "gkrust_utils",
+ "graph_xpcom",
  "http_sfv",
  "idna_glue",
  "ipcclientcerts",
@@ -2452,6 +2453,7 @@ dependencies = [
  "fog-gtest",
  "gecko-fuzz-targets",
  "gkrust-shared",
+ "graph_xpcom",
  "kvstore-gtest",
  "l10nregistry-ffi-gtest",
  "lmdb-rkv-sys",
@@ -2605,9 +2607,9 @@ dependencies = [
 
 [[package]]
 name = "glean"
-version = "66.0.0"
+version = "66.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3acc348bbf540abeedf7c271daf952b1e24311e2ea1c1f8ac172a5cedf37ac91"
+checksum = "16967309c8c9320aa752fbb700db55b543983845ad5309cb981c0df9650a530f"
 dependencies = [
  "crossbeam-channel",
  "glean-core",
@@ -2620,9 +2622,9 @@ dependencies = [
 
 [[package]]
 name = "glean-core"
-version = "66.0.0"
+version = "66.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "540e40007a01e43b73904d1ee8f7efd4782f1a7f4a20ef1dd6d2c00fc18d54b6"
+checksum = "b8d8cb0e35e0bc8472cf75cd3ca4d448f208003ea49a524deb623bdfd7c6c882"
 dependencies = [
  "android_logger",
  "bincode",
@@ -2741,6 +2743,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fdf242682df893b86f33a73828fb09ca4b2d3bb6cc95249707fc684d27484b91"
 dependencies = [
  "bitflags 2.9.0",
+]
+
+[[package]]
+name = "graph_xpcom"
+version = "0.1.0"
+dependencies = [
+ "nserror",
+ "nsstring",
+ "thin-vec",
+ "xpcom",
+ "xpcom_async",
 ]
 
 [[package]]
@@ -3746,8 +3759,8 @@ dependencies = [
 
 [[package]]
 name = "midir"
-version = "0.10.1"
-source = "git+https://github.com/mozilla/midir.git?rev=37ad39de3382c2aad0758dab49ba545331a2257d#37ad39de3382c2aad0758dab49ba545331a2257d"
+version = "0.10.3"
+source = "git+https://github.com/mozilla/midir.git?rev=0cc61b81b26088bb8d6e593caf96879879ab814b#0cc61b81b26088bb8d6e593caf96879879ab814b"
 dependencies = [
  "alsa",
  "coremidi",
@@ -4177,7 +4190,7 @@ checksum = "a2983372caf4480544083767bf2d27defafe32af49ab4df3a0b7fc90793a3664"
 [[package]]
 name = "naga"
 version = "27.0.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=d8f97261d23e436be75884f792b5931b383c4041#d8f97261d23e436be75884f792b5931b383c4041"
+source = "git+https://github.com/gfx-rs/wgpu?rev=a441382328c5163466fae06802737ef1df8d1f13#a441382328c5163466fae06802737ef1df8d1f13"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -6678,9 +6691,9 @@ dependencies = [
 
 [[package]]
 name = "urlpattern"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d501d76f119ead40238fa03f42a642444d352ad423db5287b70ae63558995a1"
+checksum = "957a88ad1abd5d13336275adb17d4f9b6a2404f3baed2e075e0b026dc0b2b58d"
 dependencies = [
  "icu_properties",
  "regex",
@@ -6933,7 +6946,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core"
 version = "27.0.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=d8f97261d23e436be75884f792b5931b383c4041#d8f97261d23e436be75884f792b5931b383c4041"
+source = "git+https://github.com/gfx-rs/wgpu?rev=a441382328c5163466fae06802737ef1df8d1f13#a441382328c5163466fae06802737ef1df8d1f13"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -6963,7 +6976,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core-deps-apple"
 version = "27.0.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=d8f97261d23e436be75884f792b5931b383c4041#d8f97261d23e436be75884f792b5931b383c4041"
+source = "git+https://github.com/gfx-rs/wgpu?rev=a441382328c5163466fae06802737ef1df8d1f13#a441382328c5163466fae06802737ef1df8d1f13"
 dependencies = [
  "wgpu-hal",
 ]
@@ -6971,7 +6984,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core-deps-windows-linux-android"
 version = "27.0.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=d8f97261d23e436be75884f792b5931b383c4041#d8f97261d23e436be75884f792b5931b383c4041"
+source = "git+https://github.com/gfx-rs/wgpu?rev=a441382328c5163466fae06802737ef1df8d1f13#a441382328c5163466fae06802737ef1df8d1f13"
 dependencies = [
  "wgpu-hal",
 ]
@@ -6979,7 +6992,7 @@ dependencies = [
 [[package]]
 name = "wgpu-hal"
 version = "27.0.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=d8f97261d23e436be75884f792b5931b383c4041#d8f97261d23e436be75884f792b5931b383c4041"
+source = "git+https://github.com/gfx-rs/wgpu?rev=a441382328c5163466fae06802737ef1df8d1f13#a441382328c5163466fae06802737ef1df8d1f13"
 dependencies = [
  "android_system_properties",
  "arrayvec",
@@ -7017,7 +7030,7 @@ dependencies = [
 [[package]]
 name = "wgpu-types"
 version = "27.0.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=d8f97261d23e436be75884f792b5931b383c4041#d8f97261d23e436be75884f792b5931b383c4041"
+source = "git+https://github.com/gfx-rs/wgpu?rev=a441382328c5163466fae06802737ef1df8d1f13#a441382328c5163466fae06802737ef1df8d1f13"
 dependencies = [
  "bitflags 2.9.0",
  "bytemuck",

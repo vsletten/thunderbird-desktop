@@ -11,7 +11,6 @@
 var { MailServices } = ChromeUtils.importESModule(
   "resource:///modules/MailServices.sys.mjs"
 );
-
 var { EnigmailStreams } = ChromeUtils.importESModule(
   "chrome://openpgp/content/modules/streams.sys.mjs"
 );
@@ -41,9 +40,6 @@ var { EnigmailKey } = ChromeUtils.importESModule(
 );
 var { EnigmailDialog } = ChromeUtils.importESModule(
   "chrome://openpgp/content/modules/dialog.sys.mjs"
-);
-var { EnigmailKeyserverURIs } = ChromeUtils.importESModule(
-  "chrome://openpgp/content/modules/keyserverUris.sys.mjs"
 );
 
 const lazy = {};
@@ -441,11 +437,7 @@ async function enigCreateKeyMsg() {
   ].createInstance(Ci.nsIMsgCompFields);
   msgCompFields.addAttachment(keyAttachment);
 
-  var msgCompSvc = Cc["@mozilla.org/messengercompose;1"].getService(
-    Ci.nsIMsgComposeService
-  );
-
-  var msgCompParam = Cc[
+  const msgCompParam = Cc[
     "@mozilla.org/messengercompose/composeparams;1"
   ].createInstance(Ci.nsIMsgComposeParams);
   msgCompParam.composeFields = msgCompFields;
@@ -453,7 +445,8 @@ async function enigCreateKeyMsg() {
   msgCompParam.type = Ci.nsIMsgCompType.New;
   msgCompParam.format = Ci.nsIMsgCompFormat.Default;
   msgCompParam.originalMsgURI = "";
-  msgCompSvc.OpenComposeWindowWithParams("", msgCompParam);
+
+  MailServices.compose.OpenComposeWindowWithParams(null, msgCompParam);
 }
 
 async function enigmailRevokeKey() {
@@ -725,6 +718,9 @@ async function enigmailSearchKey() {
   }
 }
 
+/**
+ * Upload the key to the first configured keyserver with a supported protocol.
+ */
 async function enigmailUploadKey() {
   // Always upload to the first configured keyserver with a supported protocol.
   const selKeyList = getSelectedKeys();
@@ -733,16 +729,23 @@ async function enigmailUploadKey() {
   }
 
   const keyId = gKeyList[selKeyList[0]].keyId;
-  const ks = EnigmailKeyserverURIs.getUploadKeyServer();
+  const keyserver = Services.prefs
+    .getStringPref("mail.openpgp.keyserver_list")
+    .split(/,\s*/)
+    .find(s => /^(vks:|hkp:|hkps:)\/\//.test(s));
 
-  const ok = await EnigmailKeyServer.upload(keyId, ks);
-  document.l10n
-    .formatValue(ok ? "openpgp-key-publish-ok" : "openpgp-key-publish-fail", {
-      keyserver: ks,
-    })
-    .then(value => {
-      Services.prompt.alert(window, null, value);
-    });
+  const ok = await EnigmailKeyServer.upload(keyId, keyserver);
+
+  Services.prompt.alert(
+    window,
+    null,
+    await document.l10n.formatValue(
+      ok ? "openpgp-key-publish-ok" : "openpgp-key-publish-fail",
+      {
+        keyserver,
+      }
+    )
+  );
 }
 
 async function enigmailImportKeysFromUrl() {

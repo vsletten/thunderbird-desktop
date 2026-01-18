@@ -578,13 +578,11 @@
 
     <html:div data-category="panePrivacy">
     <html:fieldset id="emailE2eeGroupPreparation" data-category="panePrivacy">
-      <description data-l10n-id="email-e2ee-enable-info"/>
-      <html:button id="settingsButton"
-              type="button"
-              data-l10n-id="account-button"
-              class="button button-flat"
-              onclick="window.browsingContext.topChromeWindow.MsgAccountManager(null);">
-      </html:button>
+      <html:p data-l10n-id="email-e2ee-enable-accounts-info">
+        <html:a data-l10n-name="account-settings-url"
+                onclick="MsgAccountManager(null);">
+        </html:a>
+      </html:p>
     </html:fieldset>
     </html:div>
 
@@ -609,6 +607,35 @@
 
       <separator class="thin"/>
       <description data-l10n-id="email-e2ee-automatism-post"/>
+    </html:fieldset>
+    </html:div>
+
+    <html:div data-category="panePrivacy">
+    <html:fieldset id="emailE2eeKeyServers" data-category="panePrivacy">
+      <html:legend data-l10n-id="email-e2ee-key-servers-legend"></html:legend>
+      <html:p data-l10n-id="email-e2ee-key-servers-intro"></html:p>
+      <html:hr />
+      <html:p data-l10n-id="email-e2ee-key-servers-use-following"></html:p>
+      <html:ul id="keyServerList" class="indent">
+        <html:template id="keyServerListItem">
+          <html:li>
+            <html:label>
+              <html:input type="checkbox" checked="checked"/>
+              <html:span class="checkbox-label"></html:span>
+            </html:label>
+          </html:li>
+        </html:template>
+      </html:ul>
+      <html:button id="keyServerAdd"
+                   type="button"
+                   data-l10n-id="email-e2ee-key-servers-add"
+                   onclick="gPrivacyPane.addKeyServer();">
+      </html:button>
+      <html:button id="keyServerReset"
+                   type="button"
+                   data-l10n-id="email-e2ee-key-servers-reset"
+                   onclick="gPrivacyPane.resetKeyServerList();">
+     </html:button>
     </html:fieldset>
     </html:div>
 
@@ -781,5 +808,4 @@
         </vbox>
       </vbox>
     </html:div>
-
   </html:template>

@@ -518,7 +518,6 @@
         this.childWrapper.appendChild(this._buildSeparator());
         const attributes = {
           label: `${folder.localizedName} - ${folder.server.prettyName}`,
-          uri: folder.URI,
           ...this._getCssSelectorAttributes(folder),
         };
         this.childWrapper.appendChild(this._buildMenuItem(attributes, folder));
@@ -567,35 +566,44 @@
         const specialFoldersMap = specialFolders.map(folder => {
           return {
             folder,
-            name: folder.localizedName,
+            folderName: folder.localizedName,
+            folderPath: folder.prettyPath,
+            serverName: folder.server.prettyName,
           };
         });
 
         // Because we're scanning across multiple accounts, we can end up with
         // several folders with the same name. Find those dupes.
         const dupeNames = new Set();
-        for (let i = 0; i < specialFoldersMap.length; i++) {
-          for (let j = i + 1; j < specialFoldersMap.length; j++) {
-            if (specialFoldersMap[i].name == specialFoldersMap[j].name) {
-              dupeNames.add(specialFoldersMap[i].name);
+        const dupeNamesAcrossAccounts = new Set();
+        for (const [name, foldersWithSameName] of Object.entries(
+          Object.groupBy(specialFoldersMap, ({ folderName }) => folderName)
+        )) {
+          if (foldersWithSameName.length > 1) {
+            dupeNames.add(name);
+            if (
+              Object.keys(
+                Object.groupBy(
+                  foldersWithSameName,
+                  ({ serverName }) => serverName
+                )
+              ).length > 1
+            ) {
+              dupeNamesAcrossAccounts.add(name);
             }
           }
         }
 
         for (const folderItem of specialFoldersMap) {
           // If this folder name appears multiple times in the recent list,
-          // append the server name to disambiguate.
-          // TODO:
-          //  - maybe this could use verboseFolderFormat from messenger.properties
-          //  instead of hardcoded " - ".
-          //  - disambiguate folders with same name in same account
-          //  (in different subtrees).
-          let label = folderItem.name;
-          if (dupeNames.has(label)) {
-            label += " - " + folderItem.folder.server.prettyName;
-          }
-
-          folderItem.label = label;
+          // use the path name and, if necessary, append the the server name
+          // to disambiguate.
+          folderItem.label = dupeNames.has(folderItem.folderName)
+            ? folderItem.folderPath +
+              (dupeNamesAcrossAccounts.has(folderItem.folderName)
+                ? ` - ${folderItem.serverName}`
+                : "")
+            : folderItem.folderName;
         }
 
         // If appropriate, sort the entries alphabetically.
@@ -609,10 +617,10 @@
         for (const folderItem of specialFoldersMap) {
           const attributes = {
             label: folderItem.label,
-            uri: folderItem.folder.URI,
+            tooltiptext: `${folderItem.folderPath} - ${folderItem.serverName}`,
+            crop: "start",
             ...this._getCssSelectorAttributes(folderItem.folder),
           };
-
           submenu.childWrapper.appendChild(
             this._buildMenuItem(attributes, folderItem.folder)
           );
@@ -665,7 +673,6 @@
               attributes.accesskey = this.getAttribute("fileHereAccessKey");
             } else {
               attributes.label = folder.localizedName;
-              attributes.uri = folder.URI;
               Object.assign(attributes, this._getCssSelectorAttributes(folder));
             }
 
@@ -708,7 +715,6 @@
 
           const attributes = {
             label: this._getFolderLabel(mode, globalInboxFolder, folder),
-            uri: folder.URI,
             ...this._getCssSelectorAttributes(folder),
           };
 

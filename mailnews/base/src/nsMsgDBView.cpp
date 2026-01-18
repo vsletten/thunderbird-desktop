@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <algorithm>
+#include "mozilla/StaticPtr.h"
 #include "msgCore.h"
 #include "prmem.h"
 #include "nsIMsgCustomColumnHandler.h"
@@ -46,32 +47,41 @@
 using mozilla::Preferences;
 using namespace mozilla::mailnews;
 
-MOZ_RUNINIT nsString nsMsgDBView::kHighestPriorityString;
-MOZ_RUNINIT nsString nsMsgDBView::kHighPriorityString;
-MOZ_RUNINIT nsString nsMsgDBView::kLowestPriorityString;
-MOZ_RUNINIT nsString nsMsgDBView::kLowPriorityString;
-MOZ_RUNINIT nsString nsMsgDBView::kNormalPriorityString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sHighestPriorityString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sHighPriorityString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sLowestPriorityString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sLowPriorityString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sNormalPriorityString;
 
-MOZ_RUNINIT nsString nsMsgDBView::kReadString;
-MOZ_RUNINIT nsString nsMsgDBView::kRepliedString;
-MOZ_RUNINIT nsString nsMsgDBView::kForwardedString;
-MOZ_RUNINIT nsString nsMsgDBView::kRedirectedString;
-MOZ_RUNINIT nsString nsMsgDBView::kNewString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sReadString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sRepliedString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sForwardedString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sRedirectedString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sNewString;
 
-MOZ_RUNINIT nsString nsMsgDBView::kTodayString;
-MOZ_RUNINIT nsString nsMsgDBView::kYesterdayString;
-MOZ_RUNINIT nsString nsMsgDBView::kLastWeekString;
-MOZ_RUNINIT nsString nsMsgDBView::kTwoWeeksAgoString;
-MOZ_RUNINIT nsString nsMsgDBView::kOldMailString;
-MOZ_RUNINIT nsString nsMsgDBView::kFutureDateString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sTodayString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sYesterdayString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sLastWeekString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sTwoWeeksAgoString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sOldMailString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sFutureDateString;
+
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sNoStatusString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sUntaggedString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sNoPriorityString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sNoAttachmentsString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sAttachmentsString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sNotStarredString;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sStarredString;
+
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sAndOthersString;
 
 bool nsMsgDBView::m_dateFormatsInitialized = false;
 nsDateFormatSelectorComm nsMsgDBView::m_dateFormatDefault = kDateFormatShort;
 nsDateFormatSelectorComm nsMsgDBView::m_dateFormatThisWeek = kDateFormatShort;
 nsDateFormatSelectorComm nsMsgDBView::m_dateFormatToday = kDateFormatNone;
 
-MOZ_RUNINIT nsString nsMsgDBView::m_connectorPattern;
-MOZ_RUNINIT nsCOMPtr<nsIStringBundle> nsMsgDBView::mMessengerStringBundle;
+mozilla::StaticAutoPtr<nsString> nsMsgDBView::sConnectorPattern;
 
 static const uint32_t kMaxNumSortColumns = 2;
 
@@ -95,8 +105,7 @@ class viewSortInfo {
 NS_IMPL_ISUPPORTS(nsMsgDBViewService, nsIMsgDBViewService)
 NS_IMETHODIMP nsMsgDBViewService::InitializeDBViewStrings() {
   nsMsgDBView::InitializeLiterals();
-  nsMsgDBView::m_connectorPattern.Truncate();
-  nsMsgDBView::mMessengerStringBundle = nullptr;
+  nsMsgDBView::sConnectorPattern = nullptr;
   // Initialize date display format.
   if (!nsMsgDBView::m_dateFormatsInitialized) {
     nsMsgDBView::InitDisplayFormats();
@@ -142,53 +151,60 @@ nsMsgDBView::nsMsgDBView() {
 }
 
 void nsMsgDBView::InitializeLiterals() {
-  // Priority strings.
-  GetString(u"priorityHighest", kHighestPriorityString);
-  GetString(u"priorityHigh", kHighPriorityString);
-  GetString(u"priorityLowest", kLowestPriorityString);
-  GetString(u"priorityLow", kLowPriorityString);
-  GetString(u"priorityNormal", kNormalPriorityString);
+  RefPtr<mozilla::intl::Localization> l10n =
+      mozilla::intl::Localization::Create({"messenger/messenger.ftl"_ns}, true);
 
-  GetString(u"read", kReadString);
-  GetString(u"replied", kRepliedString);
-  GetString(u"forwarded", kForwardedString);
-  GetString(u"redirected", kRedirectedString);
-  GetString(u"new", kNewString);
+  auto initLiteral = [l10n](nsACString const& id,
+                            mozilla::StaticAutoPtr<nsString>& literal) {
+    nsAutoString value;
+    GetString(l10n, id, value);
+    literal = new nsString(value);
+  };
 
-  GetString(u"today", kTodayString);
-  GetString(u"yesterday", kYesterdayString);
-  GetString(u"last7Days", kLastWeekString);
-  GetString(u"last14Days", kTwoWeeksAgoString);
-  GetString(u"older", kOldMailString);
-  GetString(u"futureDate", kFutureDateString);
+  initLiteral("message-priority-highest"_ns, sHighestPriorityString);
+  initLiteral("message-priority-high"_ns, sHighPriorityString);
+  initLiteral("message-priority-lowest"_ns, sLowestPriorityString);
+  initLiteral("message-priority-low"_ns, sLowPriorityString);
+  initLiteral("message-priority-normal"_ns, sNormalPriorityString);
+
+  initLiteral("message-flag-read"_ns, sReadString);
+  initLiteral("message-flag-replied"_ns, sRepliedString);
+  initLiteral("message-flag-forwarded"_ns, sForwardedString);
+  initLiteral("message-flag-redirected"_ns, sRedirectedString);
+  initLiteral("message-flag-new"_ns, sNewString);
+
+  initLiteral("message-group-today"_ns, sTodayString);
+  initLiteral("message-group-yesterday"_ns, sYesterdayString);
+  initLiteral("message-group-last-seven-days"_ns, sLastWeekString);
+  initLiteral("message-group-last-fourteen-days"_ns, sTwoWeeksAgoString);
+  initLiteral("message-group-older"_ns, sOldMailString);
+  initLiteral("message-group-future-date"_ns, sFutureDateString);
+
+  initLiteral("message-group-no-status"_ns, sNoStatusString);
+  initLiteral("message-group-untagged"_ns, sUntaggedString);
+  initLiteral("message-group-no-priority"_ns, sNoPriorityString);
+  initLiteral("message-group-no-attachments"_ns, sNoAttachmentsString);
+  initLiteral("message-group-attachments"_ns, sAttachmentsString);
+  initLiteral("message-group-not-starred"_ns, sNotStarredString);
+  initLiteral("message-group-starred"_ns, sStarredString);
+
+  initLiteral("and-others"_ns, sAndOthersString);
 }
 
 nsMsgDBView::~nsMsgDBView() {
   if (m_db) m_db->RemoveListener(this);
 }
 
-// Helper function used to fetch strings from the messenger string bundle
-void nsMsgDBView::GetString(const char16_t* aStringName, nsAString& aValue) {
-  nsresult res = NS_ERROR_UNEXPECTED;
-
-  if (!nsMsgDBView::mMessengerStringBundle) {
-    static const char propertyURL[] = MESSENGER_STRING_URL;
-    nsCOMPtr<nsIStringBundleService> sBundleService =
-        mozilla::components::StringBundle::Service();
-
-    if (sBundleService)
-      res = sBundleService->CreateBundle(
-          propertyURL, getter_AddRefs(nsMsgDBView::mMessengerStringBundle));
-  }
-
-  if (nsMsgDBView::mMessengerStringBundle)
-    res = mMessengerStringBundle->GetStringFromName(
-        NS_ConvertUTF16toUTF8(aStringName).get(), aValue);
-
-  if (NS_FAILED(res)) {
-    aValue = aStringName;
-  }
-}
+void nsMsgDBView::GetString(mozilla::intl::Localization* l10n,
+                            nsACString const& id, nsAString& value) {
+  nsAutoCString localizedValue;
+  mozilla::ErrorResult error;
+  l10n->FormatValueSync(id, {}, localizedValue, error);
+  if (error.Failed()) {
+    localizedValue = id;
+  };
+  value = NS_ConvertUTF8toUTF16(localizedValue);
+};
 
 nsresult nsMsgDBView::AppendKeywordProperties(const nsACString& keywords,
                                               nsAString& properties,
@@ -381,10 +397,7 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr* aHdr, nsAString& aSenderString) {
   }
 
   if (multipleAuthors) {
-    aSenderString.AppendLiteral(" ");
-    nsAutoString val;
-    GetString(u"andOthers", val);
-    aSenderString.Append(val);
+    aSenderString.Append(u" "_ns + *sAndOthersString);
   }
 
   UpdateCachedName(aHdr, "sender_name", aSenderString);
@@ -613,7 +626,7 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr* aHdr, nsAString& aDateString,
           components, &explodedMsgTime, weekdayString);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      if (nsMsgDBView::m_connectorPattern.IsEmpty()) {
+      if (!sConnectorPattern) {
         nsAutoCString locale;
         AutoTArray<nsCString, 10> regionalPrefsLocales;
         mozilla::intl::LocaleService::GetInstance()->GetRegionalPrefsLocales(
@@ -622,10 +635,11 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr* aHdr, nsAString& aDateString,
         nsAutoCString str;
         mozilla::intl::OSPreferences::GetInstance()
             ->GetDateTimeConnectorPattern(locale, str);
-        nsMsgDBView::m_connectorPattern = NS_ConvertUTF8toUTF16(str);
+        nsMsgDBView::sConnectorPattern =
+            new nsString(NS_ConvertUTF8toUTF16(str));
       }
 
-      nsAutoString pattern(nsMsgDBView::m_connectorPattern);
+      nsAutoString pattern(*nsMsgDBView::sConnectorPattern);
       int32_t ind = pattern.Find(u"{1}"_ns);
       if (ind != kNotFound) {
         pattern.Replace(ind, 3, weekdayString);
@@ -647,15 +661,15 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr* aHdr, nsAString& aDateString,
 
 nsresult nsMsgDBView::FetchStatus(uint32_t aFlags, nsAString& aStatusString) {
   if (aFlags & nsMsgMessageFlags::Replied)
-    aStatusString = kRepliedString;
+    aStatusString = *sRepliedString;
   else if (aFlags & nsMsgMessageFlags::Forwarded)
-    aStatusString = kForwardedString;
+    aStatusString = *sForwardedString;
   else if (aFlags & nsMsgMessageFlags::Redirected)
-    aStatusString = kRedirectedString;
+    aStatusString = *sRedirectedString;
   else if (aFlags & nsMsgMessageFlags::New)
-    aStatusString = kNewString;
+    aStatusString = *sNewString;
   else if (aFlags & nsMsgMessageFlags::Read)
-    aStatusString = kReadString;
+    aStatusString = *sReadString;
 
   return NS_OK;
 }
@@ -697,19 +711,19 @@ nsresult nsMsgDBView::FetchPriority(nsIMsgDBHdr* aHdr,
 
   switch (priority) {
     case nsMsgPriority::highest:
-      aPriorityString = kHighestPriorityString;
+      aPriorityString = *sHighestPriorityString;
       break;
     case nsMsgPriority::high:
-      aPriorityString = kHighPriorityString;
+      aPriorityString = *sHighPriorityString;
       break;
     case nsMsgPriority::low:
-      aPriorityString = kLowPriorityString;
+      aPriorityString = *sLowPriorityString;
       break;
     case nsMsgPriority::lowest:
-      aPriorityString = kLowestPriorityString;
+      aPriorityString = *sLowestPriorityString;
       break;
     case nsMsgPriority::normal:
-      aPriorityString = kNormalPriorityString;
+      aPriorityString = *sNormalPriorityString;
       break;
     default:
       break;
@@ -1498,7 +1512,8 @@ nsMsgDBView::GetCellValue(int32_t aRow, nsTreeColumn* aCol, nsAString& aValue) {
 
   nsAutoCString localizedValue;
   RefPtr<mozilla::intl::Localization> l10n =
-      mozilla::intl::Localization::Create({"messenger/messenger.ftl"_ns}, true);
+      mozilla::intl::Localization::Create({"messenger/about3Pane.ftl"_ns},
+                                          true);
 
   // Provide a string "value" for cells that do not normally have text.
   // Use empty string for the normal states "Read", "Not Starred",
@@ -1507,13 +1522,13 @@ nsMsgDBView::GetCellValue(int32_t aRow, nsTreeColumn* aCol, nsAString& aValue) {
     case 'a':
       if (colID.EqualsLiteral("attachmentCol") &&
           flags & nsMsgMessageFlags::Attachment) {
-        GetString(u"messageHasAttachment", aValue);
+        GetString(l10n, "threadpane-attachments-cell-label"_ns, aValue);
       }
       break;
     case 'f':
       if (colID.EqualsLiteral("flaggedCol") &&
           flags & nsMsgMessageFlags::Marked) {
-        GetString(u"messageHasFlag", aValue);
+        GetString(l10n, "threadpane-flagged-cell-label"_ns, aValue);
       }
       break;
     case 'j':
@@ -1524,37 +1539,24 @@ nsMsgDBView::GetCellValue(int32_t aRow, nsTreeColumn* aCol, nsAString& aValue) {
         // as it should be for non-junk.
         if (!junkScoreStr.IsEmpty() &&
             (junkScoreStr.ToInteger(&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE)) {
-          rv =
-              LocalizeMessage(l10n, "message-flag-spam"_ns, {}, localizedValue);
-          NS_ENSURE_SUCCESS(rv, rv);
-          aValue = NS_ConvertUTF8toUTF16(localizedValue);
+          GetString(l10n, "threadpane-spam-cell-label"_ns, aValue);
         }
-
         NS_ASSERTION(NS_SUCCEEDED(rv),
                      "Converting junkScore to integer failed.");
       }
       break;
     case 't':
-      if (colID.EqualsLiteral("threadCol") &&
-          (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)) {
-        // thread column
-        bool isContainer, isContainerEmpty, isContainerOpen;
-        IsContainer(aRow, &isContainer);
-        if (isContainer) {
-          IsContainerEmpty(aRow, &isContainerEmpty);
-          if (!isContainerEmpty) {
-            IsContainerOpen(aRow, &isContainerOpen);
-            GetString(
-                isContainerOpen ? u"messageExpanded" : u"messageCollapsed",
-                aValue);
-          }
-        }
-      }
+      // The "Search Messages" dialog is the only instance that uses the
+      // nsITreeView interface, and it no longer offers a threaded view,
+      // so there is no collapsed/expanded state from threadCol to announce.
       break;
     case 'u':
-      if (colID.EqualsLiteral("unreadButtonColHeader") &&
-          !(flags & nsMsgMessageFlags::Read)) {
-        GetString(u"messageUnread", aValue);
+      if (colID.EqualsLiteral("unreadButtonColHeader")) {
+        GetString(l10n,
+                  (flags & nsMsgMessageFlags::Read)
+                      ? "threadpane-read-cell-label"_ns
+                      : "threadpane-unread-cell-label"_ns,
+                  aValue);
       }
       break;
     default:
@@ -1860,14 +1862,6 @@ nsMsgDBView::CellTextForColumn(int32_t aRow, const nsAString& aColumnName,
         }
       }
       break;
-    case 'j': {
-      if (aColumnName.EqualsLiteral("junkStatusCol")) {
-        nsCString junkScoreStr;
-        msgHdr->GetStringProperty("junkscore", junkScoreStr);
-        CopyASCIItoUTF16(junkScoreStr, aValue);
-      }
-      break;
-    }
     case 'i': {
       if (aColumnName.EqualsLiteral("idCol")) {
         nsAutoString keyString;

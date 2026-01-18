@@ -6,6 +6,7 @@
 DIRS += [
     "ews_xpcom",
     "gkrust",
+    "graph_xpcom",
 ]
 
 if CONFIG["ENABLE_TESTS"]:
